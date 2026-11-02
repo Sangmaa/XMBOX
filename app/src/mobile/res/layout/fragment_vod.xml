@@ -82,6 +82,14 @@
                     android:background="@drawable/shape_action_background"
                     android:src="@drawable/ic_action_history" />
 
+                <ImageView
+                    android:id="@+id/download"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/shape_action_background"
+                    android:src="@drawable/ic_action_download" />
+
             </LinearLayout>
 
             <!-- 观看记录板块 -->

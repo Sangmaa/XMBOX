@@ -191,4 +191,5 @@ dependencies {
     // 注意：MpvPlayer 类已内置优雅降级，库不存在时自动使用 ExoPlayer
     // 加密存储 (用于 WebDAV 密码等敏感信息)
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    testImplementation 'junit:junit:4.13.2'
 }

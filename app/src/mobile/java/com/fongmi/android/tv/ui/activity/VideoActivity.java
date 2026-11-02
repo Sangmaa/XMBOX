@@ -95,6 +95,8 @@ import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.ControlDialog;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
+import com.fongmi.android.tv.ui.dialog.DownloadEpisodeDialog;
+import com.fongmi.android.tv.download.DownloadEnqueuer;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
@@ -464,6 +466,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initEvent() {
         mBinding.name.setOnClickListener(view -> onName());
         mBinding.more.setOnClickListener(view -> onMore());
+        mBinding.downloadBatch.setOnClickListener(view -> onDownloadBatch());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.name.setOnLongClickListener(view -> onChange());
@@ -834,6 +837,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.episode.setVisibility(items.size() == 0 ? View.GONE : View.VISIBLE);
         mBinding.reverse.setVisibility(items.size() < 2 ? View.GONE : View.VISIBLE);
         mBinding.more.setVisibility(items.size() < 10 ? View.GONE : View.VISIBLE);
+        mBinding.downloadBatch.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         mEpisodeAdapter.addAll(items);
     }
 
@@ -873,6 +877,25 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 .reverse(mHistory.isRevSort())
                 .episodes(mEpisodeAdapter.getItems());
         dialog.show(this);
+    }
+
+    private void onDownloadBatch() {
+        if (mCurrentVod == null) return;
+        Flag flag = getFlag();
+        if (flag == null || flag.getEpisodes().isEmpty()) return;
+        DownloadEpisodeDialog.create()
+                .reverse(mHistory != null && mHistory.isRevSort())
+                .episodes(flag.getEpisodes())
+                .callback(list -> DownloadEnqueuer.enqueue(getKey(), flag.getFlag(), mCurrentVod.getVodId(), mCurrentVod.getVodName(), mCurrentVod.getVodPic(), list, this::onEnqueued))
+                .show(this);
+    }
+
+    private void onEnqueued(int added, int skipped, int failed) {
+        StringBuilder builder = new StringBuilder();
+        if (added > 0) builder.append(getString(R.string.download_added, added));
+        if (skipped > 0) builder.append(builder.length() > 0 ? "，" : "").append(getString(R.string.download_skipped, skipped));
+        if (failed > 0) builder.append(builder.length() > 0 ? "，" : "").append(getString(R.string.download_failed_count, failed));
+        if (builder.length() > 0) Notify.show(builder.toString());
     }
 
     private void onContent() {

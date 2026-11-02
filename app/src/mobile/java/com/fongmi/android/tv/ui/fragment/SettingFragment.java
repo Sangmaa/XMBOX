@@ -42,6 +42,7 @@ import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
+import com.fongmi.android.tv.ui.activity.DownloadActivity;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.activity.SettingPlayerActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
@@ -183,6 +184,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         mBinding.webdav.setOnClickListener(this::onWebDAV);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
+        mBinding.download.setOnClickListener(this::onDownload);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.updateSource.setOnClickListener(this::onUpdateSource);
@@ -401,6 +403,10 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     private void onLiveHistory(View view) {
         HistoryDialog.create(this).type(type = 1).show();
+    }
+
+    private void onDownload(View view) {
+        DownloadActivity.start(requireActivity());
     }
 
     private void onPlayer(View view) {

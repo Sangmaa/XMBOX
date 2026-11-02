@@ -38,4 +38,41 @@ public class Migrations {
             database.execSQL("CREATE TABLE IF NOT EXISTS Download (`id` TEXT NOT NULL PRIMARY KEY, `vodPic` TEXT, `vodName` TEXT, `vodId` TEXT, `url` TEXT, `header` TEXT, `createTime` INTEGER NOT NULL, `progress` INTEGER NOT NULL, `status` TEXT, `duration` INTEGER NOT NULL, `speed` INTEGER NOT NULL)");
         }
     };
+
+    /** 离线下载：补全 Download 表字段（旧 34 版表结构可能缺少 statusInt）。 */
+    public static final Migration MIGRATION_34_35 = new Migration(34, 35) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            addColumnIfMissing(database, "Download", "statusInt", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(database, "Download", "localPath", "TEXT");
+            addColumnIfMissing(database, "Download", "episodeName", "TEXT");
+            addColumnIfMissing(database, "Download", "totalBytes", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(database, "Download", "error", "TEXT");
+        }
+    };
+
+    /** 离线下载：记录已下载字节数，进度页显示“已下载/总大小/速度”。 */
+    public static final Migration MIGRATION_35_36 = new Migration(35, 36) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            addColumnIfMissing(database, "Download", "downloaded", "INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    private static void addColumnIfMissing(SupportSQLiteDatabase database, String table, String column, String definition) {
+        boolean exists = false;
+        android.database.Cursor cursor = database.query("PRAGMA table_info(`" + table + "`)");
+        try {
+            int nameIndex = cursor.getColumnIndex("name");
+            while (cursor.moveToNext()) {
+                if (column.equalsIgnoreCase(cursor.getString(nameIndex))) {
+                    exists = true;
+                    break;
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        if (!exists) database.execSQL("ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition);
+    }
 }

@@ -1,10 +1,11 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -14,69 +15,43 @@ import com.fongmi.android.tv.bean.Download;
 import com.fongmi.android.tv.databinding.AdapterDownloadBinding;
 import com.fongmi.android.tv.utils.UrlUtil;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
-public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHolder> {
+public class DownloadAdapter extends ListAdapter<Download, DownloadAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private final List<Download> items;
 
     public interface OnClickListener {
         void onItemClick(Download item);
+
         void onActionClick(Download item);
+
+        void onItemDelete(Download item);
     }
+
+    private static final DiffUtil.ItemCallback<Download> DIFF = new DiffUtil.ItemCallback<>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Download oldItem, @NonNull Download newItem) {
+            return oldItem.getId().equals(newItem.getId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Download oldItem, @NonNull Download newItem) {
+            return oldItem.getProgress() == newItem.getProgress()
+                    && oldItem.getStatusInt() == newItem.getStatusInt()
+                    && oldItem.getSpeed() == newItem.getSpeed()
+                    && oldItem.getTotalBytes() == newItem.getTotalBytes()
+                    && oldItem.getDownloaded() == newItem.getDownloaded()
+                    && oldItem.getEpisodeName().equals(newItem.getEpisodeName())
+                    && oldItem.getVodName().equals(newItem.getVodName())
+                    && oldItem.getVodPic().equals(newItem.getVodPic())
+                    && oldItem.getError().equals(newItem.getError());
+        }
+    };
 
     public DownloadAdapter(OnClickListener listener) {
+        super(DIFF);
         this.listener = listener;
-        this.items = new ArrayList<>();
-    }
-
-    public void addAll(List<Download> list) {
-        items.clear();
-        items.addAll(list);
-        notifyDataSetChanged();
-    }
-
-    public void update(Download download) {
-        int position = -1;
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).getId() == download.getId()) {
-                position = i;
-                break;
-            }
-        }
-        if (position != -1) {
-            items.set(position, download);
-            notifyItemChanged(position);
-        }
-    }
-
-    public void remove(Download download) {
-        int position = -1;
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).getId() == download.getId()) {
-                position = i;
-                break;
-            }
-        }
-        if (position != -1) {
-            items.remove(position);
-            notifyItemRemoved(position);
-        }
-    }
-
-    public List<Download> getItems() {
-        return items;
-    }
-
-    public boolean isEmpty() {
-        return items.isEmpty();
-    }
-
-    @Override
-    public int getItemCount() {
-        return items.size();
     }
 
     @NonNull
@@ -87,7 +62,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.initView(items.get(position));
+        holder.initView(getItem(position));
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -100,40 +75,91 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
         }
 
         void initView(Download item) {
-            binding.name.setText(item.getVodName());
+            binding.getRoot().setOnLongClickListener(v -> {
+                listener.onItemDelete(item);
+                return true;
+            });
+            binding.name.setText(item.getDisplayName());
             Glide.with(App.get()).load(UrlUtil.convert(item.getVodPic())).placeholder(R.drawable.ic_nav_vod).into(binding.cover);
-
-            // 根据下载状态显示不同内容
             int status = item.getStatusInt();
             if (status == Download.STATUS_COMPLETED) {
                 binding.status.setText(R.string.download_completed);
                 binding.progress.setProgress(100);
-                binding.progressText.setText(R.string.download_completed);
+                binding.progressText.setText(formatSize(item.getTotalBytes()));
                 binding.action.setImageResource(R.drawable.ic_action_delete);
-            } else if (status == Download.STATUS_FAILED) {
-                binding.status.setText(R.string.download_failed);
-                binding.progress.setProgress(0);
-                binding.progressText.setText(item.getStatus());
-                binding.action.setImageResource(R.drawable.ic_action_delete);
-            } else {
-                binding.status.setText(R.string.downloading);
+            } else if (status == Download.STATUS_PAUSED) {
+                binding.status.setText(getString(R.string.download_paused) + "  " + item.getProgress() + "%");
                 binding.progress.setProgress(item.getProgress());
-                String progressText = item.getProgress() + "%";
-                if (item.getSpeed() > 0) {
-                    progressText += " - " + formatSpeed(item.getSpeed());
-                }
-                binding.progressText.setText(progressText);
-                binding.action.setImageResource(R.drawable.ic_action_delete);
+                String sub = downloadedText(item);
+                binding.progressText.setVisibility(sub.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+                binding.progressText.setText(sub);
+                binding.action.setImageResource(R.drawable.ic_notify_play);
+            } else if (status == Download.STATUS_FAILED) {
+                binding.status.setText(item.getError().isEmpty() ? getString(R.string.download_failed) : item.getError());
+                binding.progress.setProgress(item.getProgress());
+                String sub = downloadedText(item);
+                binding.progressText.setVisibility(sub.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+                binding.progressText.setText(sub);
+                binding.action.setImageResource(R.drawable.ic_action_retry);
+            } else if (status == Download.STATUS_DOWNLOADING) {
+                binding.status.setText(activeText(item));
+                binding.progress.setProgress(item.getProgress());
+                String sub = downloadedText(item);
+                binding.progressText.setVisibility(sub.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+                binding.progressText.setText(sub);
+                binding.action.setImageResource(R.drawable.ic_notify_pause);
+            } else {
+                binding.status.setText(R.string.download_pending);
+                binding.progress.setProgress(0);
+                binding.progressText.setText(R.string.download_pending);
+                binding.action.setImageResource(R.drawable.ic_notify_pause);
             }
-
             binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
             binding.action.setOnClickListener(v -> listener.onActionClick(item));
         }
 
+        private String activeText(Download item) {
+            return getString(R.string.downloading) + "  " + item.getProgress() + '%';
+        }
+
+        private String downloadedText(Download item) {
+            StringBuilder sb = new StringBuilder();
+            long done = item.getDownloaded();
+            if (done > 0) sb.append(getString(R.string.download_downloaded_only, formatSize(done)));
+            if (done > 0 && item.getTotalBytes() > 0) sb.append(" / ").append(formatSize(item.getTotalBytes()));
+            if (item.getSpeed() > 0) {
+                if (sb.length() > 0) sb.append("  ");
+                sb.append(formatSpeed(item.getSpeed()));
+            }
+            return sb.toString();
+        }
+
+        private String sizeText(Download item) {
+            long total = item.getTotalBytes();
+            if (total <= 0) return String.format(Locale.getDefault(), "%d%%", item.getProgress());
+            long downloaded = item.getProgress() >= 100 ? total : total * item.getProgress() / 100;
+            return binding.getRoot().getContext().getString(R.string.download_downloaded, formatSize(downloaded), formatSize(total));
+        }
+
+        private String getString(int res) {
+            return binding.getRoot().getContext().getString(res);
+        }
+
+        private String getString(int res, Object... args) {
+            return binding.getRoot().getContext().getString(res, args);
+        }
+
+        private String formatSize(long bytes) {
+            if (bytes <= 0) return "";
+            if (bytes < 1024 * 1024) return String.format(Locale.getDefault(), "%.0fKB", bytes / 1024f);
+            if (bytes < 1024L * 1024 * 1024) return String.format(Locale.getDefault(), "%.1fMB", bytes / 1024f / 1024f);
+            return String.format(Locale.getDefault(), "%.2fGB", bytes / 1024f / 1024f / 1024f);
+        }
+
         private String formatSpeed(long speed) {
-            if (speed < 1024) return speed + " B/s";
-            if (speed < 1024 * 1024) return String.format("%.1f KB/s", speed / 1024.0);
-            return String.format("%.1f MB/s", speed / (1024.0 * 1024.0));
+            if (speed <= 0) return "";
+            if (speed < 1024 * 1024) return String.format(Locale.getDefault(), "%.0fKB/s", speed / 1024f);
+            return String.format(Locale.getDefault(), "%.1fMB/s", speed / 1024f / 1024f);
         }
     }
 }

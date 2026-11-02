@@ -1,43 +1,52 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.databinding.DialogDownloadEpisodeBinding;
+import com.fongmi.android.tv.databinding.ItemDownloadEpisodeBinding;
 import com.fongmi.android.tv.ui.activity.DownloadActivity;
-import com.fongmi.android.tv.ui.fragment.DownloadEpisodeFragment;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-public class DownloadEpisodeDialog extends BaseDialog implements DownloadEpisodeFragment.DownloadEpisodeCallback {
+/**
+ * 选集下载弹窗：多选剧集后批量加入下载。
+ */
+public class DownloadEpisodeDialog extends BaseDialog {
+
+    public interface Callback {
+        void onDownload(List<Episode> episodes);
+    }
 
     private DialogDownloadEpisodeBinding binding;
-    private List<Episode> episodes;
-    private final List<String> titles;
-    private DownloadCallback callback;
+    private List<Episode> episodes = new ArrayList<>();
+    private final Set<String> selected = new LinkedHashSet<>();
+    private Callback callback;
     private boolean reverse;
-    private int spanCount;
-    private int itemCount;
 
     public static DownloadEpisodeDialog create() {
         return new DownloadEpisodeDialog();
     }
 
-    public DownloadEpisodeDialog() {
-        this.titles = new ArrayList<>();
-        this.spanCount = 5;
+    public DownloadEpisodeDialog episodes(List<Episode> episodes) {
+        this.episodes = episodes == null ? new ArrayList<>() : new ArrayList<>(episodes);
+        return this;
     }
 
     public DownloadEpisodeDialog reverse(boolean reverse) {
@@ -45,12 +54,7 @@ public class DownloadEpisodeDialog extends BaseDialog implements DownloadEpisode
         return this;
     }
 
-    public DownloadEpisodeDialog episodes(List<Episode> episodes) {
-        this.episodes = episodes;
-        return this;
-    }
-
-    public DownloadEpisodeDialog callback(DownloadCallback callback) {
+    public DownloadEpisodeDialog callback(Callback callback) {
         this.callback = callback;
         return this;
     }
@@ -67,94 +71,86 @@ public class DownloadEpisodeDialog extends BaseDialog implements DownloadEpisode
 
     @Override
     protected void initView() {
-        // 检查episodes是否为空
-        if (episodes == null || episodes.isEmpty()) {
+        if (episodes.isEmpty()) {
             dismiss();
             return;
         }
-        setSpanCount();
-        setTitles();
-        setPager();
-        initEvent();
-    }
-
-    protected void initEvent() {
-        binding.downloadList.setOnClickListener(v -> onDownloadList());
-    }
-
-    private void onDownloadList() {
-        dismiss();
-        DownloadActivity.start(getActivity());
-    }
-
-    private void setSpanCount() {
-        int total = 0;
-        int row = ResUtil.isLand(getActivity()) ? 5 : 10;
-        for (Episode item : episodes) total += item.getName().length();
-        // 防止除以零
-        if (episodes.size() == 0) {
-            spanCount = 5;
-            itemCount = spanCount * row;
-            return;
-        }
-        int offset = (int) Math.ceil((double) total / episodes.size());
-        if (offset >= 12) spanCount = 1;
-        else if (offset >= 8) spanCount = 2;
-        else if (offset >= 4) spanCount = 3;
-        else if (offset >= 2) spanCount = 4;
-        itemCount = spanCount * row;
-    }
-
-    private void setTitles() {
-        if (reverse) for (int i = episodes.size(); i > 0; i -= itemCount) titles.add(i + " - " + Math.max(i - itemCount - 1, 1));
-        else for (int i = 0; i < episodes.size(); i += itemCount) titles.add((i + 1) + " - " + Math.min(i + itemCount, episodes.size()));
-    }
-
-    private void setPager() {
-        binding.pager.setAdapter(new PageAdapter(getActivity()));
-        new TabLayoutMediator(binding.tabs, binding.pager, (tab, position) -> tab.setText(titles.get(position))).attach();
-        setCurrentPage();
-    }
-
-    private void setCurrentPage() {
-        for (int i = 0; i < episodes.size(); i++) {
-            if (episodes.get(i).isActivated()) {
-                binding.pager.setCurrentItem(i / itemCount);
-                break;
-            }
-        }
+        if (reverse) Collections.reverse(episodes);
+        binding.recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.recycler.setAdapter(new Adapter());
+        binding.list.setOnClickListener(v -> {
+            DownloadActivity.start(requireActivity());
+            dismiss();
+        });
+        binding.toggle.setOnClickListener(v -> toggleAll());
+        updateStart();
     }
 
     @Override
-    public void onEpisodeSelected(Episode episode) {
-        // 用户点击集数时，通知回调开始下载
-        if (callback != null) {
-            callback.onDownloadEpisode(episode);
-        }
-        dismiss();
+    protected void initEvent() {
+        binding.start.setOnClickListener(v -> {
+            List<Episode> chosen = new ArrayList<>();
+            for (Episode episode : episodes) if (selected.contains(episode.getUrl())) chosen.add(episode);
+            if (chosen.isEmpty()) return;
+            dismiss();
+            if (callback != null) callback.onDownload(chosen);
+        });
     }
 
-    class PageAdapter extends FragmentStateAdapter {
+    private void toggleAll() {
+        boolean all = selected.size() == episodes.size();
+        selected.clear();
+        if (!all) for (Episode episode : episodes) selected.add(episode.getUrl());
+        binding.recycler.getAdapter().notifyDataSetChanged();
+        updateStart();
+    }
 
-        public PageAdapter(@NonNull FragmentActivity activity) {
-            super(activity);
-        }
+    private void updateStart() {
+        int count = selected.size();
+        binding.toggle.setText(selected.size() == episodes.size() ? R.string.download_batch_none : R.string.download_batch_all);
+        String text = getString(R.string.download_batch_start);
+        binding.start.setText(count == 0 ? text : text + " (" + count + ")");
+        binding.start.setEnabled(count > 0);
+    }
+
+    private class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
         @NonNull
         @Override
-        public Fragment createFragment(int position) {
-            DownloadEpisodeFragment fragment = DownloadEpisodeFragment.newInstance(spanCount, episodes.subList(position * itemCount, Math.min(position * itemCount + itemCount, episodes.size())));
-            fragment.setCallback(DownloadEpisodeDialog.this);
-            return fragment;
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(ItemDownloadEpisodeBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            holder.bind(episodes.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return titles.size();
+            return episodes.size();
         }
-    }
 
-    public interface DownloadCallback {
-        void onDownloadEpisode(Episode episode);
+        class ViewHolder extends RecyclerView.ViewHolder {
+
+            private final ItemDownloadEpisodeBinding item;
+
+            ViewHolder(ItemDownloadEpisodeBinding item) {
+                super(item.getRoot());
+                this.item = item;
+            }
+
+            void bind(Episode episode) {
+                String name = episode.getName().isEmpty() ? episode.getUrl() : episode.getName();
+                item.text.setText(name);
+                item.check.setChecked(selected.contains(episode.getUrl()));
+                item.getRoot().setOnClickListener(v -> {
+                    if (!selected.remove(episode.getUrl())) selected.add(episode.getUrl());
+                    notifyItemChanged(getBindingAdapterPosition());
+                    updateStart();
+                });
+                item.check.setOnClickListener(v -> item.getRoot().performClick());
+            }
+        }
     }
 }

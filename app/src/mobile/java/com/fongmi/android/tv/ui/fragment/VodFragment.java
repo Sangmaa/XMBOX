@@ -43,6 +43,7 @@ import com.fongmi.android.tv.impl.FilterCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
+import com.fongmi.android.tv.ui.activity.DownloadActivity;
 import com.fongmi.android.tv.ui.activity.HistoryActivity;
 import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
@@ -158,6 +159,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.search.setOnClickListener(this::onSearch);
         mBinding.history.setOnClickListener(this::onHistory);
+        mBinding.download.setOnClickListener(this::onDownload);
         mBinding.historyMore.setOnClickListener(this::onHistory);
         mBinding.filter.setOnLongClickListener(this::onLink);
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -463,6 +465,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     private void onHistory(View view) {
         HistoryActivity.start(getActivity());
+    }
+
+    private void onDownload(View view) {
+        DownloadActivity.start(getActivity());
     }
 
     private void setupHistoryRecycler() {

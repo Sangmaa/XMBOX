@@ -68,5 +68,20 @@
         <item>Off</item>
         <item>On</item>
     </string-array>
+    <string name="download_pending">Pending</string>
+    <string name="download_paused">Paused</string>
+    <string name="download_delete_confirm">Delete \"%1$s\"?</string>
+    <string name="download_file_missing">File not found</string>
+    <string name="download_invalid_file">File is corrupted, please download again</string>
+    <string name="download_batch_title">Select episodes</string>
+    <string name="download_batch_all">Select all</string>
+    <string name="download_batch_none">Unselect all</string>
+    <string name="download_batch_start">Download</string>
+    <string name="download_added">Added %1$d</string>
+    <string name="download_skipped">%1$d already downloaded</string>
+    <string name="download_failed_count">%1$d failed</string>
+    <string name="download_settings">Downloads</string>
 
+    <string name="download_downloaded">Downloaded %1$s / %2$s</string>
+    <string name="download_downloaded_only">Downloaded %1$s</string>
 </resources>

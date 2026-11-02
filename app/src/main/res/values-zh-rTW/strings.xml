@@ -236,5 +236,27 @@
     <string name="config_set_current">已設為當前點播源</string>
     
     <string name="source_hint">點我添加源</string>
+    <string name="download_pending">等待下載</string>
+    <string name="download_paused">已暫停</string>
+    <string name="download_delete_confirm">刪除\"%1$s\"？</string>
+    <string name="download_file_missing">檔案不存在</string>
+    <string name="download_invalid_file">檔案已損壞，請重新下載</string>
+    <string name="download_batch_title">選擇下載集數</string>
+    <string name="download_batch_all">全選</string>
+    <string name="download_batch_none">全不選</string>
+    <string name="download_batch_start">開始下載</string>
+    <string name="download_added">已加入 %1$d 個</string>
+    <string name="download_skipped">已下載過 %1$d 個</string>
+    <string name="download_failed_count">失敗 %1$d 個</string>
+    <string name="download_settings">下載管理</string>
 
+    <string name="detail_download_list">下載列表</string>
+    <string name="download">下載</string>
+    <string name="download_empty">暫無下載</string>
+    <string name="download_completed">已完成</string>
+    <string name="download_failed">下載失敗</string>
+    <string name="downloading">下載中</string>
+    <string name="dialog_delete_download">將刪除全部下載記錄</string>
+    <string name="download_downloaded">已下載 %1$s / %2$s</string>
+    <string name="download_downloaded_only">已下載 %1$s</string>
 </resources>

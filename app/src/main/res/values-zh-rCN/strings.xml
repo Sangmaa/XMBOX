@@ -242,5 +242,27 @@
     <string name="source_hint_setting">添加视频源</string>
     <string name="source_hint_live">添加直播源</string>
     <string name="source_hint_wall">添加壁纸源</string>
+    <string name="download_pending">等待下载</string>
+    <string name="download_paused">已暂停</string>
+    <string name="download_delete_confirm">删除\"%1$s\"？</string>
+    <string name="download_file_missing">文件不存在</string>
+    <string name="download_invalid_file">文件已损坏，请重新下载</string>
+    <string name="download_batch_title">选择下载集数</string>
+    <string name="download_batch_all">全选</string>
+    <string name="download_batch_none">全不选</string>
+    <string name="download_batch_start">开始下载</string>
+    <string name="download_added">已加入 %1$d 个</string>
+    <string name="download_skipped">已下载过 %1$d 个</string>
+    <string name="download_failed_count">失败 %1$d 个</string>
+    <string name="download_settings">下载管理</string>
 
+    <string name="detail_download_list">下载列表</string>
+    <string name="download">下载</string>
+    <string name="download_empty">暂无下载</string>
+    <string name="download_completed">已完成</string>
+    <string name="download_failed">下载失败</string>
+    <string name="downloading">下载中</string>
+    <string name="dialog_delete_download">将删除全部下载记录</string>
+    <string name="download_downloaded">已下载 %1$s / %2$s</string>
+    <string name="download_downloaded_only">已下载 %1$s</string>
 </resources>
