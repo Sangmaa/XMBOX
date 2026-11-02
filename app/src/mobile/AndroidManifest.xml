@@ -15,14 +15,12 @@
             android:name=".ui.activity.PrivacyAgreementActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:exported="false"
-            android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".ui.activity.HomeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:exported="true"
-            android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -76,28 +74,23 @@
         <activity
             android:name=".ui.activity.CollectActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".ui.activity.FileActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.FolderActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.HistoryActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.KeepActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.LiveActivity"
@@ -111,32 +104,27 @@
 
         <activity
             android:name=".ui.activity.ScanActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.SettingPlayerActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.VideoActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:launchMode="singleTop"
             android:resizeableActivity="true"
-            android:screenOrientation="fullUser"
             android:supportsPictureInPicture="true"
             android:theme="@style/AppTheme.Detail" />
 
         <activity
             android:name=".ui.activity.DownloadActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
-            android:screenOrientation="fullUser" />
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".ui.activity.CastWorksActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
-            android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan" />
 
         <receiver

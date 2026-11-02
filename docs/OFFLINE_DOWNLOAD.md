@@ -50,3 +50,13 @@ export ANDROID_HOME=<Android SDK>
 # 产物：app/build/outputs/apk/mobileArm64_v8a/debug/mobile-arm64_v8a.apk
 ./gradlew :app:testMobileArm64_v8aDebugUnitTest
 ```
+
+## 大屏（平板）适配
+
+发行包仍是手机版 UI，平板上做的是「等比放大 + 横屏」，不重建平板布局：
+
+- **可调整窗口**：`mobile/AndroidManifest.xml` 声明 `android:resizeableActivity="true"` 与 `supports-screens`，系统允许全屏/分屏，不再强制小窗。
+- **等比放大**：`UiScale`（`app/src/main/java/com/fongmi/android/tv/utils/UiScale.java`）在 `BaseActivity.attachBaseContext` 中按设备最小宽度缩放 density（`sw≥600dp` 时启动，最大 1.45 倍），XML 里的 dp 与代码里的 `ResUtil.dp2px/sp2px` 一起放大，页面结构不变。
+- **横屏**：`BaseActivity.onCreate` 在 `ResUtil.isPad()` 时请求 `sensorLandscape`，平板始终横屏全屏显示；手机不受影响。
+- 注意：MIUI/HyperOS 对未适配应用有「竖屏小窗」策略，若个别机型仍以小窗打开，可在系统「设置 → 应用设置 → XMBOX → 横屏模式/全屏显示」中改为全屏。
+

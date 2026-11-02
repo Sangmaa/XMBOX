@@ -1,6 +1,9 @@
 package com.fongmi.android.tv.ui.base;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -25,6 +28,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.UiScale;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -37,7 +41,20 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected abstract ViewBinding getBinding();
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(UiScale.wrap(newBase));
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        UiScale.apply(getResources(), newConfig);
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 平板（大屏）固定横屏，避免 MIUI 把应用放进竖屏小窗
+        if (ResUtil.isPad()) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         super.onCreate(savedInstanceState);
         if (transparent()) setTransparent(this);
