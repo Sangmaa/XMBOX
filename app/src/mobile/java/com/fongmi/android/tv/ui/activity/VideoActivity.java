@@ -466,7 +466,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initEvent() {
         mBinding.name.setOnClickListener(view -> onName());
         mBinding.more.setOnClickListener(view -> onMore());
-        mBinding.downloadBatch.setOnClickListener(view -> onDownloadBatch());
+        if (mBinding.downloadBatch != null) mBinding.downloadBatch.setOnClickListener(view -> onDownloadBatch());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.name.setOnLongClickListener(view -> onChange());
@@ -837,7 +837,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.episode.setVisibility(items.size() == 0 ? View.GONE : View.VISIBLE);
         mBinding.reverse.setVisibility(items.size() < 2 ? View.GONE : View.VISIBLE);
         mBinding.more.setVisibility(items.size() < 10 ? View.GONE : View.VISIBLE);
-        mBinding.downloadBatch.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        if (mBinding.downloadBatch != null) mBinding.downloadBatch.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         mEpisodeAdapter.addAll(items);
     }
 
